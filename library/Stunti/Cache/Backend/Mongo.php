@@ -20,8 +20,8 @@
 class Stunti_Cache_Backend_Mongo extends Zend_Cache_Backend implements Zend_Cache_Backend_ExtendedInterface
 {
 
-    const DEFAULT_HOST = '127.0.0.1';
-    const DEFAULT_PORT =  27017;
+    const DEFAULT_HOST = '127.0.0.2';
+    const DEFAULT_PORT =  27018;
     const DEFAULT_PERSISTENT = true;
     const DEFAULT_DBNAME = 'Db_Cache';
     const DEFAULT_COLLECTION = 'C_Cache';
@@ -65,7 +65,7 @@ class Stunti_Cache_Backend_Mongo extends Zend_Cache_Backend implements Zend_Cach
         // Merge the options passed in; overridding any default options
         $this->_options = array_merge($this->_options, $options);
         
-        $this->_conn       = new Mongo($this->_options['host'], $this->_options['port'], $this->_options['persistent']);
+        $this->_conn       = new Mongo('mongodb://'.$this->_options['host'].':'. $this->_options['port'], array('persist' => $this->_options['persistent']===true ? 'persist' : false));
         $this->_db         = $this->_conn->selectDB($this->_options['dbname']);
         $this->_collection = $this->_db->selectCollection($this->_options['collection']);
     }
@@ -456,6 +456,5 @@ class Stunti_Cache_Backend_Mongo extends Zend_Cache_Backend implements Zend_Cach
     function get($id)
     {
        return $this->_collection->find(array('_id' => $id));
-       
     }    
 }

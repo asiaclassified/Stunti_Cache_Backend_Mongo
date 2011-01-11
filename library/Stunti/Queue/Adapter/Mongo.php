@@ -99,7 +99,7 @@ class Stunti_Queue_Adapter_Mongo extends Zend_Queue_Adapter_AdapterAbstract
             $this->_options['collection'] = self::DEFAULT_COLLECTION;
         }
         $options = $this->_options;
-        $this->_conn       = new Mongo($this->_options['host'], $this->_options['port'], $this->_options['persistent']);
+        $this->_conn       = new Mongo('mongodb://'.$this->_options['host'].':'. $this->_options['port'], array('persist' => $this->_options['persistent']===true ? 'persist' : false));
         
         $this->_db         = $this->_conn->selectDB($this->_options['dbname']);
         $result = $this->_collection = $this->_db->selectCollection($this->_options['collection']);
