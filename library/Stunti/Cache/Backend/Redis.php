@@ -53,6 +53,8 @@ class Stunti_Cache_Backend_Redis extends Zend_Cache_Backend
         'host' => self::DEFAULT_HOST,
         'port' => self::DEFAULT_PORT,
         'timeout' => self::DEFAULT_TIMEOUT,
+        'lifetime' => 0,
+        'prefix' => '',
     );
     
     /**
@@ -63,6 +65,8 @@ class Stunti_Cache_Backend_Redis extends Zend_Cache_Backend
     protected $_connection = null;
 
     protected $_lifetime = null;
+
+    protected $_prefix = null;
     
     /**
      * Redis object
@@ -81,6 +85,9 @@ class Stunti_Cache_Backend_Redis extends Zend_Cache_Backend
         }
         if (!empty($options['lifetime'])) {
             $this->_lifetime = $options['lifetime'];
+        }
+        if (!empty($options['prefix'])) {
+            $this->_prefix = $options['prefix'];
         }
         parent::__construct($options);
         $this->_connect();
@@ -116,10 +123,13 @@ class Stunti_Cache_Backend_Redis extends Zend_Cache_Backend
         if (empty($lifetime) && !empty($this->_lifetime)) {
             $lifetime = $this->_lifetime;
         }
-        $lengthId = strlen($id);
-        $lengthData = strlen($data);
+        if (!empty($this->_prefix)) {
+            $id = $this->_prefix . '-'.$id;
+        }
         $result = $this->_redis->set($id, $data);
         /*
+        $lengthId = strlen($id);
+        $lengthData = strlen($data);
         $result = $this->_call('*3' . self::DELIMITER
             . '$3' . self::DELIMITER . 'SET' . self::DELIMITER .
             '$' . $lengthId . self::DELIMITER . $id . self::DELIMITER .
@@ -140,18 +150,27 @@ class Stunti_Cache_Backend_Redis extends Zend_Cache_Backend
 
     public function remove($id)
     {
-        return $this->del($id);
+        if (!empty($this->_prefix)) {
+            $id = $this->_prefix . '-'.$id;
+        }
+        return $this->_redis->del($id);
         //return $this->_call('DEL ' . $id . self::DELIMITER);
     }
 
     public function test($id)
     {
-        return $this->exists($id);
+        if (!empty($this->_prefix)) {
+            $id = $this->_prefix . '-'.$id;
+        }
+        return $this->_redis->exists($id);
         //return $this->_call('EXISTS ' . $id . self::DELIMITER);
     }
 
     public function load($id, $doNotTestCacheValidity = false)
     {
+        if (!empty($this->_prefix)) {
+            $id = $this->_prefix . '-'.$id;
+        }
         return $this->_redis->get($id);
         //return $this->_call('GET '. $id . self::DELIMITER);
     }
